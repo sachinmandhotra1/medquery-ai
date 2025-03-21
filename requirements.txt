@@ -3,4 +3,5 @@ uvicorn
 litellm
 python-dotenv
 mcp
+gunicorn
 psycopg2-binary>=2.9.9
