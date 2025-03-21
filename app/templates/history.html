@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+
+{% block title %}Chat History - Medical Context Query System{% endblock %}
+
+{% block additional_styles %}
+<style>
+    .history-container {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+
+    .conversation-card {
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 20px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        transition: transform 0.2s;
+    }
+
+    .conversation-card:hover {
+        transform: translateY(-2px);
+    }
+
+    .conversation-time {
+        color: #6b7280;
+        font-size: 0.875rem;
+        margin-bottom: 10px;
+    }
+
+    .query-text {
+        color: #1a56db;
+        font-weight: 500;
+        margin-bottom: 10px;
+    }
+
+    .response-text {
+        color: #374151;
+        line-height: 1.6;
+    }
+
+    .model-badge {
+        display: inline-block;
+        background-color: #e0e7ff;
+        color: #1a56db;
+        padding: 4px 8px;
+        border-radius: 6px;
+        font-size: 0.875rem;
+        margin-bottom: 10px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="history-container">
+    <h1>Conversation History</h1>
+    {% if conversations %}
+        {% for conv in conversations %}
+        <div class="conversation-card">
+            <div class="conversation-time">
+                {{ conv.created_at.strftime('%B %d, %Y at %I:%M %p') }}
+            </div>
+            <div class="model-badge">{{ conv.model }}</div>
+            <div class="query-text">Q: {{ conv.query }}</div>
+            <div class="response-text">A: {{ conv.response }}</div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <p>No conversation history available.</p>
+    {% endif %}
+</div>
+{% endblock %}

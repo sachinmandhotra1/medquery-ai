@@ -1,0 +1,430 @@
+{% extends "base.html" %}
+
+{% block title %}Chat - Medical Context Query System{% endblock %}
+
+{% block additional_styles %}
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<style>
+    .chat-interface {
+        width: calc(100% - 48px);
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 0;
+        height: calc(100vh - 80px);
+        display: flex;
+        flex-direction: column;
+        position: relative;
+    }
+
+    .chat-container {
+        flex: 1;
+        overflow-y: auto;
+        padding: 0;
+        margin-bottom: 100px;
+        width: 100%;
+    }
+
+    .message-wrapper {
+        width: 100%;
+        padding: 24px 0;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    .message-wrapper:last-child {
+        border-bottom: none;
+    }
+
+    .message-inner {
+        width: 100%;
+        padding: 0 24px;
+        display: flex;
+        gap: 20px;
+    }
+
+    .message-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .user .message-avatar {
+        background-color: #1a56db;
+        color: white;
+    }
+
+    .assistant .message-avatar {
+        background-color: #10b981;
+        color: white;
+    }
+
+    .message-content {
+        flex: 1;
+        line-height: 1.6;
+        font-size: 16px;
+        color: #1f2937;
+    }
+
+    .message-wrapper.user {
+        background-color: #f9fafb;
+    }
+
+    .message-wrapper.assistant {
+        background-color: white;
+    }
+
+    .context-section {
+        margin-top: 20px;
+        padding-top: 20px;
+        border-top: 1px solid #e5e7eb;
+    }
+
+    .context-title {
+        font-size: 0.875rem;
+        color: #6b7280;
+        margin-bottom: 12px;
+        font-weight: 500;
+    }
+
+    .context-items {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 16px;
+        width: 100%;
+    }
+
+    .context-item {
+        background: #f9fafb;
+        padding: 12px;
+        border-radius: 8px;
+        font-size: 0.875rem;
+    }
+
+    .context-item h4 {
+        color: #1a56db;
+        margin: 0 0 8px 0;
+        font-size: 0.875rem;
+    }
+
+    .context-item p {
+        margin: 4px 0;
+        color: #4b5563;
+    }
+
+    .input-container {
+        position: fixed;
+        bottom: 0;
+        left: 250px;
+        right: 0;
+        padding: 24px;
+        background: linear-gradient(to bottom, transparent, #f9fafb 20%);
+        z-index: 100;
+    }
+
+    .input-wrapper {
+        width: 100%;
+        max-width: 800px;  /* Increased from 800px */
+        margin: 0 auto;
+        padding: 0;
+    }
+
+    .input-box {
+        position: relative;
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        background: white;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        width: 100%;
+        min-height: 60px;
+        display: flex;
+        align-items: flex-end;
+    }
+
+    textarea.query-box {
+        width: 100%;
+        min-height: 60px;
+        padding: 16px 80px 16px 20px;
+        border: none;
+        border-radius: 12px;
+        resize: none;
+        font-size: 16px;
+        line-height: 1.5;
+        max-height: 200px;
+        outline: none;
+        background: transparent;
+        color: #1f2937;
+    }
+
+    textarea.query-box::placeholder {
+        color: #9ca3af;
+    }
+
+    .submit-btn {
+        position: absolute;
+        bottom: 12px;
+        right: 12px;
+        padding: 8px 16px;
+        background-color: #1a56db;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.2s;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 64px;
+    }
+
+    .submit-btn:hover {
+        background-color: #1e40af;
+        transform: translateY(-1px);
+    }
+
+    .submit-btn:active {
+        transform: translateY(0);
+    }
+
+    .submit-btn:disabled {
+        background-color: #9ca3af;
+        cursor: not-allowed;
+    }
+
+    .typing-indicator {
+        display: none;
+        padding: 20px;
+        color: #6b7280;
+        font-style: italic;
+    }
+
+    .typing-indicator.active {
+        display: block;
+    }
+
+    /* Scrollbar styling */
+    .chat-container::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    .chat-container::-webkit-scrollbar-track {
+        background: #f1f1f1;
+    }
+
+    .chat-container::-webkit-scrollbar-thumb {
+        background: #c5c5c5;
+        border-radius: 4px;
+    }
+
+    .chat-container::-webkit-scrollbar-thumb:hover {
+        background: #a5a5a5;
+    }
+
+    .message-content {
+        flex: 1;
+        line-height: 1.6;
+        font-size: 16px;
+        color: #1f2937;
+    }
+
+    .message-content h1, 
+    .message-content h2, 
+    .message-content h3 {
+        margin-top: 1em;
+        margin-bottom: 0.5em;
+    }
+
+    .message-content p {
+        margin-bottom: 1em;
+    }
+
+    .message-content ul, 
+    .message-content ol {
+        margin-left: 1.5em;
+        margin-bottom: 1em;
+    }
+
+    .message-content strong {
+        font-weight: 600;
+        color: #111827;
+    }
+
+    .message-content em {
+        font-style: italic;
+    }
+
+    .message-content code {
+        background-color: #f3f4f6;
+        padding: 0.2em 0.4em;
+        border-radius: 4px;
+        font-size: 0.9em;
+    }
+
+    .message-content pre {
+        background-color: #f3f4f6;
+        padding: 1em;
+        border-radius: 8px;
+        overflow-x: auto;
+        margin-bottom: 1em;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="chat-interface">
+    <div class="chat-container" id="chatContainer">
+        <!-- Welcome message -->
+        <div class="message-wrapper assistant">
+            <div class="message-inner">
+                <div class="message-avatar">🤖</div>
+                <div class="message-content">
+                    Hello! I'm your medical research assistant. I can help you find information from clinical trials and medical publications. What would you like to know?
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="input-container">
+        <div class="input-wrapper">
+            <form id="queryForm">
+                <div class="input-box">
+                    <textarea 
+                        class="query-box" 
+                        placeholder="Ask your question..."
+                        rows="1"
+                        onInput="autoResize(this)"
+                    ></textarea>
+                    <button type="submit" class="submit-btn" id="submitBtn">Send</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    const chatContainer = document.getElementById('chatContainer');
+    const submitBtn = document.getElementById('submitBtn');
+    const queryBox = document.querySelector('.query-box');
+
+    function autoResize(textarea) {
+        textarea.style.height = 'auto';
+        const newHeight = Math.min(textarea.scrollHeight, 200); // Max height of 200px
+        textarea.style.height = newHeight + 'px';
+    }
+
+    function addMessage(content, context = null, isUser = false) {
+        const wrapper = document.createElement('div');
+        wrapper.className = `message-wrapper ${isUser ? 'user' : 'assistant'}`;
+        
+        const inner = document.createElement('div');
+        inner.className = 'message-inner';
+        
+        // Use marked to render Markdown content
+        const formattedContent = isUser ? content : marked.parse(content);
+        
+        const messageHtml = `
+            <div class="message-avatar">
+                ${isUser ? '👤' : '🤖'}
+            </div>
+            <div class="message-content">
+                <div>${formattedContent}</div>
+                ${context ? renderContext(context) : ''}
+            </div>
+        `;
+        
+        inner.innerHTML = messageHtml;
+        wrapper.appendChild(inner);
+        chatContainer.appendChild(wrapper);
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+    }
+
+    function renderContext(context) {
+        if (!context.length) return '';
+        
+        const contextItems = context.map(item => {
+            if (item.source_type === 'clinical_trial') {
+                return `
+                    <div class="context-item">
+                        <h4>Clinical Trial: ${item.nct_id}</h4>
+                        <p><strong>Title:</strong> ${item.brief_title}</p>
+                        <p><strong>Phase:</strong> ${item.phase}</p>
+                        <p><strong>Status:</strong> ${item.overall_status}</p>
+                    </div>`;
+            } else {
+                return `
+                    <div class="context-item">
+                        <h4>Publication: ${item.doi}</h4>
+                        <p><strong>Title:</strong> ${item.title}</p>
+                        <p><strong>Journal:</strong> ${item.journal_name}</p>
+                    </div>`;
+            }
+        }).join('');
+
+        return `
+            <div class="context-section">
+                <div class="context-title">Related Sources:</div>
+                <div class="context-items">
+                    ${contextItems}
+                </div>
+            </div>
+        `;
+    }
+
+    // Handle form submission
+    document.getElementById('queryForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const query = queryBox.value.trim();
+        
+        if (!query) return;
+
+        // Disable input and button while processing
+        queryBox.disabled = true;
+        submitBtn.disabled = true;
+
+        // Add user message
+        addMessage(query, null, true);
+        queryBox.value = '';
+        queryBox.style.height = 'auto';
+        
+        try {
+            const response = await fetch('/query', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `query=${encodeURIComponent(query)}`
+            });
+            
+            const data = await response.json();
+            
+            // Add assistant message with context
+            addMessage(data.response, data.context);
+            
+        } catch (error) {
+            console.error('Error:', error);
+            addMessage('An error occurred while processing your query. Please try again.');
+        } finally {
+            // Re-enable input and button
+            queryBox.disabled = false;
+            submitBtn.disabled = false;
+            queryBox.focus();
+        }
+    });
+
+    // Handle Enter key (with and without Shift)
+    queryBox.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            submitBtn.click();
+        }
+    });
+
+    // Focus input box on page load
+    window.addEventListener('load', () => {
+        queryBox.focus();
+    });
+</script>
+{% endblock %}

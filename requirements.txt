@@ -1,0 +1,6 @@
+fastapi
+uvicorn
+litellm
+python-dotenv
+mcp
+psycopg2-binary>=2.9.9

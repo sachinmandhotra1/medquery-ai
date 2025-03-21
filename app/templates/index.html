@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Medical Context Query System</title>
+    <style>
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            background-color: #f9fafb;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0;
+        }
+        .header {
+            padding: 1rem 2rem;
+            background-color: white;
+            border-bottom: 1px solid #e5e7eb;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        .chat-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+        .message {
+            display: flex;
+            gap: 1rem;
+            max-width: 90%;
+        }
+        .message.user {
+            margin-left: auto;
+            flex-direction: row-reverse;
+        }
+        .message-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #e5e7eb;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .message-content {
+            background-color: white;
+            padding: 1rem;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            max-width: 70%;
+        }
+        .user .message-content {
+            background-color: #007bff;
+            color: white;
+        }
+        .context-panel {
+            background-color: white;
+            border-left: 1px solid #e5e7eb;
+            padding: 1.5rem;
+            width: 300px;
+            position: fixed;
+            right: 0;
+            top: 0;
+            height: 100vh;
+            overflow-y: auto;
+        }
+        .input-container {
+            position: sticky;
+            bottom: 0;
+            background-color: white;
+            padding: 1.5rem;
+            border-top: 1px solid #e5e7eb;
+        }
+        .input-box {
+            display: flex;
+            gap: 1rem;
+            align-items: flex-end;
+        }
+        textarea.query-box {
+            flex: 1;
+            padding: 1rem;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            resize: none;
+            font-size: 16px;
+            min-height: 60px;
+            max-height: 150px;
+        }
+        .submit-btn {
+            padding: 1rem 2rem;
+            font-size: 16px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .submit-btn:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Medical Context Query System</h1>
+        </div>
+        
+        <div class="chat-container" id="chatContainer">
+            <!-- Messages will be dynamically added here -->
+        </div>
+
+        <div class="input-container">
+            <form id="queryForm">
+                <div class="input-box">
+                    <textarea class="query-box" 
+                              placeholder="Ask your medical question..."
+                              rows="1"
+                              onInput="this.style.height = 'auto'; this.style.height = this.scrollHeight + 'px'"></textarea>
+                    <button type="submit" class="submit-btn">Send</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="context-panel" id="contextPanel">
+        <h2>Related Context</h2>
+        <div id="contextContent"></div>
+    </div>
+
+    <script>
+        const chatContainer = document.getElementById('chatContainer');
+        
+        function addMessage(content, isUser = false) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${isUser ? 'user' : ''}`;
+            messageDiv.innerHTML = `
+                <div class="message-avatar">
+                    ${isUser ? '👤' : '🤖'}
+                </div>
+                <div class="message-content">
+                    ${content}
+                </div>
+            `;
+            chatContainer.appendChild(messageDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        document.getElementById('queryForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const queryBox = document.querySelector('.query-box');
+            const query = queryBox.value;
+            
+            if (!query.trim()) return;
+
+            // Add user message
+            addMessage(query, true);
+            queryBox.value = '';
+            queryBox.style.height = 'auto';
+            
+            try {
+                const response = await fetch('/query', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `query=${encodeURIComponent(query)}`
+                });
+                
+                const data = await response.json();
+                
+                // Add assistant message
+                addMessage(data.response);
+                
+                // Update context panel
+                const contextHtml = data.context.map(item => {
+                    if (item.source_type === 'clinical_trial') {
+                        return `<div class="context-item">
+                            <h3>Clinical Trial: ${item.nct_id}</h3>
+                            <p><strong>Title:</strong> ${item.brief_title}</p>
+                            <p><strong>Phase:</strong> ${item.phase}</p>
+                            <p><strong>Status:</strong> ${item.overall_status}</p>
+                        </div>`;
+                    } else {
+                        return `<div class="context-item">
+                            <h3>Publication: ${item.doi}</h3>
+                            <p><strong>Title:</strong> ${item.title}</p>
+                            <p><strong>Journal:</strong> ${item.journal_name}</p>
+                        </div>`;
+                    }
+                }).join('');
+                document.getElementById('contextContent').innerHTML = contextHtml;
+                
+            } catch (error) {
+                console.error('Error:', error);
+                addMessage('An error occurred while processing your query. Please try again.');
+            }
+        });
+    </script>
+</body>
+</html>

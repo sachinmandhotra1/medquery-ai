@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+
+{% block title %}Home - Medical Context Query System{% endblock %}
+
+{% block additional_styles %}
+<style>
+    .hero {
+        text-align: center;
+        padding: 60px 20px;
+        max-width: 800px;
+        margin: 0 auto;
+    }
+
+    .hero h1 {
+        font-size: 2.5rem;
+        color: #1a56db;
+        margin-bottom: 20px;
+    }
+
+    .hero p {
+        font-size: 1.2rem;
+        color: #4b5563;
+        margin-bottom: 30px;
+        line-height: 1.6;
+    }
+
+    .features {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 30px;
+        margin-top: 60px;
+    }
+
+    .feature-card {
+        background: white;
+        padding: 30px;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    }
+
+    .feature-card h3 {
+        color: #1a56db;
+        margin-bottom: 15px;
+    }
+
+    .feature-card p {
+        color: #4b5563;
+        line-height: 1.5;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="hero">
+    <h1>Welcome to MedQuery AI</h1>
+    <p>Your intelligent medical research assistant powered by advanced AI and comprehensive medical databases. Get instant access to clinical trials and medical publications.</p>
+    <a href="/chat" class="btn-primary">Start Chatting</a>
+
+    <div class="features">
+        <div class="feature-card">
+            <h3>Clinical Trials Access</h3>
+            <p>Search and analyze data from thousands of clinical trials with context-aware responses.</p>
+        </div>
+        <div class="feature-card">
+            <h3>Publication Search</h3>
+            <p>Access medical publications and research papers with intelligent summarization.</p>
+        </div>
+        <div class="feature-card">
+            <h3>Smart Context</h3>
+            <p>Get responses backed by relevant medical context and citations.</p>
+        </div>
+    </div>
+</div>
+{% endblock %}
