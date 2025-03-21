@@ -5,7 +5,6 @@ from .config import settings
 from dotenv import load_dotenv
 
 load_dotenv(override=True)
-print("MCP SERVER STARTED...")
 
 
 mcp = FastMCP("PostgreSQL-LLM-Server")
@@ -14,10 +13,8 @@ mcp = FastMCP("PostgreSQL-LLM-Server")
 @mcp.resource("/context/{query}")
 async def get_context(query: str) -> str:
     """Fetch relevant context from clinical trials and publications"""
-    print("USING MCP 1")
-    results = await db_manager.get_context_data(query)
 
-    print("RESULTS MCP:", len(results))
+    results = await db_manager.get_context_data(query)
     
     # Format results into readable text
     context_parts = []
@@ -153,9 +150,8 @@ async def query_llm(query: str, context: str = None) -> str:
 @mcp.prompt()
 def create_prompt(query: str) -> str:
     """Create a prompt with context"""
-    print("USING MCP 3")
     return f"Please answer this query using the provided context: {query}"
 
 
-if __name__ == "__main__":
-    mcp.run()
+# if __name__ == "__main__":
+#     mcp.run()

@@ -136,7 +136,6 @@ class DatabaseManager:
                 temperature=0
             )
             decision = response.choices[0].message.content.strip().lower()
-            print("DECISION:", decision)
             
             if decision == 'clinical_trials':
                 return 'clinical_trials_feed'
