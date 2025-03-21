@@ -146,7 +146,6 @@ async def query_llm(query: str, context: str = None) -> str:
         return "I apologize, but I encountered an error while processing your query. Please try again or rephrase your question."
 
 
-
 @mcp.prompt()
 def create_prompt(query: str) -> str:
     """Create a prompt with context"""

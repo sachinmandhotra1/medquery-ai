@@ -13,7 +13,7 @@ class Settings(BaseSettings):
     DB_SCHEMA: str = os.getenv("DB_SCHEMA")
 
     class Config:
-        env_file = ".env"
+        env_file = "../.env"
 
 
 settings = Settings()
