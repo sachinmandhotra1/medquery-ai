@@ -6,7 +6,6 @@ from dotenv import load_dotenv
 
 load_dotenv(override=True)
 
-
 mcp = FastMCP("PostgreSQL-LLM-Server")
 
 
@@ -129,14 +128,6 @@ async def query_llm(query: str, context: str = None) -> str:
         )
         
         response_text = response.choices[0].message.content
-        
-        # Save the conversation to database
-        await db_manager.save_conversation(
-            query=query,
-            response=response_text,
-            model=settings.DEFAULT_MODEL,
-            context_items=context.split("\n\n") if context else []
-        )
         
         return response_text
         

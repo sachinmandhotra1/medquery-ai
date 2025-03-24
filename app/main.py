@@ -5,6 +5,7 @@ from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from .mcp_server import mcp, query_llm
 from .database import db_manager
+from .config import settings
 from pathlib import Path
 from dotenv import load_dotenv
 import uvicorn
@@ -100,6 +101,14 @@ async def process_query(query: str = Form(...)):
         else:
             response = "I apologize, but I couldn't find enough relevant information to provide a detailed answer to your question. Could you please rephrase or provide more specific details?"
         
+        # Save the conversation to database
+        await db_manager.save_conversation(
+            query=query,
+            response=response,
+            model=settings.DEFAULT_MODEL,
+            context_items=context_text.split("\n\n") if context_text else []
+        )
+
         return {
             "response": response,
             "context": context_data
